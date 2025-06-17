@@ -26,6 +26,7 @@ class SSD1306:
         self.height = height
         self.external_vcc = external_vcc
         self.pages = height // 8
+        print("I2C initialization ")
         self.buffer = bytearray(self.pages * width)
         self.framebuf = framebuf.FrameBuffer(
             self.buffer, width, height, framebuf.MONO_VLSB
