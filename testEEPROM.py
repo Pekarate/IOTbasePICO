@@ -110,7 +110,17 @@ def check_board():
     platform = sys.platform
     if platform == "esp32":
         print("ESP32 board detected.")
-        return I2C(0, sda=Pin(4), scl=Pin(5), freq=400000)
+        print("Select ESP32 board type:")
+        print("1. NANO (SDA=11, SCL=12, freq=400kHz)")
+        print("2. NON_NANO (SDA=4, SCL=5, freq=400kHz)")
+        while True:
+            choice = input("Enter a number (1-2): ").strip()
+            if choice == "1":
+                return I2C(0, sda=Pin(11), scl=Pin(12), freq=400000)
+            elif choice == "2":
+                return I2C(0, sda=Pin(4), scl=Pin(5), freq=400000)
+            else:
+                print("Invalid choice. Try again.")
     elif platform == "rp2":
         print("RP2040 board detected.")
         return I2C(0, sda=Pin(20), scl=Pin(21), freq=400000)

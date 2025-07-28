@@ -2,19 +2,42 @@ import sys
 from machine import Pin, UART
 import time
 
+selected_port_test = None
+selected_rs485_port = None
+
+# Modify the configure_uart function
 def configure_uart(baudrate):
+    global selected_port_test, selected_rs485_port
     platform = sys.platform
 
     if platform == "esp32":
-        print("ESP32 detected")
-        port_test = UART(1, baudrate=baudrate, tx=Pin(11), rx=Pin(12), rxbuf=1024, timeout=500)
-        rs485_port = UART(2, baudrate=baudrate, tx=Pin(33), rx=Pin(34), rxbuf=1024, timeout=500)
+        # Only ask for selection if it hasn't been done before
+        if selected_port_test is None and selected_rs485_port is None:
+            print("ESP32 detected")
+            print("Select ESP32 board type:")
+            print("1. NANO (TX1=1(INT PIN)/RX1=5(PWM), TX2=7/RX2=8)")
+            print("2. NON_NANO (TX1=11(TX)/RX1=12(RX PIN), TX2=33/RX2=34)")
+            while True:
+                choice = input("Enter a number (1-2): ").strip()
+                if choice == "1":
+                    selected_port_test = (1, 5)  # Store pin numbers
+                    selected_rs485_port = (7, 8)
+                    break
+                elif choice == "2":
+                    selected_port_test = (11, 12)
+                    selected_rs485_port = (33, 34)
+                    break
+                else:
+                    print("Invalid choice. Try again.")
+        
+        # Use the stored pin configurations
+        port_test = UART(1, baudrate=baudrate, tx=Pin(selected_port_test[0]), 
+                        rx=Pin(selected_port_test[1]), rxbuf=1024, timeout=500)
+        rs485_port = UART(2, baudrate=baudrate, tx=Pin(selected_rs485_port[0]), 
+                         rx=Pin(selected_rs485_port[1]), rxbuf=1024, timeout=500)
+
     elif platform == "rp2":
         print("RP2040 detected")
-        # Check if baudrate is supported (RP2040 typically supports up to 921600 reliably)
-        # if baudrate > 921600:
-        #     print(f"Baudrate {baudrate} may not be supported on RP2040. Skipping.")
-        #     return None, None
         port_test = UART(0, baudrate=baudrate, tx=Pin(0), rx=Pin(1), rxbuf=1024, timeout=500)
         rs485_port = UART(1, baudrate=baudrate, tx=Pin(8), rx=Pin(9), rxbuf=1024, timeout=500)
     else:
@@ -22,6 +45,7 @@ def configure_uart(baudrate):
         return None, None
 
     return port_test, rs485_port
+
 
 def send_data(uart, message):
     # Encode message to bytes
@@ -71,16 +95,16 @@ def test_uart_transmission():
             try:
                 received_str = received.decode('utf-8')
                 if received_str.strip() == message.strip():
-                    print("Test 1: PASS - Data matches")
+                    print("rs485_port: PASS - Data matches")
                     pass_count += 1
                 else:
-                    print("Test 1: FAIL - Data mismatch")
+                    print("rs485_port: FAIL - Data mismatch")
                     fail_count += 1
             except UnicodeError:
                 print(f"Test 1: FAIL - UnicodeError: Received data is not valid UTF-8: {received}")
                 fail_count += 1
         else:
-            print("Test 1: FAIL - No data received")
+            print("rs485_port: FAIL - No data received")
             fail_count += 1
 
         # Test rs485_port TX to port_test RX
@@ -94,10 +118,10 @@ def test_uart_transmission():
             try:
                 received_str = received.decode('utf-8')
                 if received_str.strip() == message_2.strip():
-                    print("Test 2: PASS - Data matches")
+                    print("port_test : PASS - Data matches")
                     pass_count += 1
                 else:
-                    print("Test 2: FAIL - Data mismatch")
+                    print("port_test : FAIL - Data mismatch")
                     fail_count += 1
             except UnicodeError:
                 print(f"Test 2: FAIL - UnicodeError: Received data is not valid UTF-8: {received}")

@@ -34,8 +34,24 @@ def detect_board_and_configure_i2c():
     global tca9534_mask
     if platform == "esp32":
         try:
-            i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=100000)
-            dev = tca9534.TCA9534(tca9534_address=0x3f,scl=Pin(5), sda=Pin(4), bitmask=tca9534_mask)  # ESP32-
+            print("ESP32 board detected.")
+            print("Select ESP32 board type:")
+            print("1. NANO (SDA=11, SCL=12, freq=100kHz)")
+            print("2. NON_NANO (SDA=4, SCL=5, freq=100kHz)")
+            while True:
+                choice = input("Enter a number (1-2): ").strip()
+                if choice == "1":
+                    i2c = I2C(0, sda=Pin(11), scl=Pin(12), freq=100000)
+                    dev = tca9534.TCA9534(tca9534_address=0x3f,scl=Pin(12), sda=Pin(11), bitmask=tca9534_mask)  # ESP32-
+                    break
+                elif choice == "2":
+                    i2c = I2C(0, sda=Pin(4), scl=Pin(5), freq=100000)
+                    dev = tca9534.TCA9534(tca9534_address=0x3f,scl=Pin(5), sda=Pin(4), bitmask=tca9534_mask)  # ESP32-
+                    break
+                else:
+                    print("Invalid choice. Try again.")
+            print("I2C initialized successfully.")
+            
             # dev = None  # Placeholder for TCA9534 initialization
             return i2c, dev
         except Exception as e:
