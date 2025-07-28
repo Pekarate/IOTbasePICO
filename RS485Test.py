@@ -16,7 +16,7 @@ def configure_uart(baudrate):
             print("ESP32 detected")
             print("Select ESP32 board type:")
             print("1. NANO (TX1=1(INT PIN)/RX1=5(PWM), TX2=7/RX2=8)")
-            print("2. NON_NANO (TX1=11(TX)/RX1=12(RX PIN), TX2=33/RX2=34)")
+            print("2. NON_NANO (TX1=7(INT)/RX1=6(PWM PIN), TX2=33/RX2=34)")
             while True:
                 choice = input("Enter a number (1-2): ").strip()
                 if choice == "1":
@@ -24,7 +24,7 @@ def configure_uart(baudrate):
                     selected_rs485_port = (7, 8)
                     break
                 elif choice == "2":
-                    selected_port_test = (11, 12)
+                    selected_port_test = (7, 6)
                     selected_rs485_port = (33, 34)
                     break
                 else:
